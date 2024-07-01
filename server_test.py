@@ -48,11 +48,11 @@ class MyRequestHandler(BaseHTTPRequestHandler):
     lpr_1 = "e6f9fe93-8e4d-8f79-65f0-58cd4b6a8e4d"
 
     def do_POST(self):
-        try:
-            self.turn_led_on()
+        # try:
+        #     self.turn_led_on()
         
-        except:
-            print("Error turning LED on")
+        # except:
+        #     print("Error turning LED on")
             
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
@@ -151,11 +151,11 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             self.tms_db.commit()
             self.my_cursor.close()
             self.tms_db.close()
-            if direction == "IN":
-                try:
-                    self.run_turn_led_off_thread()
-                except:
-                    pass
+            # if direction == "IN":
+            #     try:
+            #         self.run_turn_led_off_thread()
+            #     except:
+            #         pass
         elif self.result_samsung:
             label = "Samsung"
             add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
@@ -164,12 +164,12 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             self.tms_db.commit()
             self.my_cursor.close()
             self.tms_db.close()
-            if direction == "IN":
-                try:
-                    self.run_blink_led_thread()
-                except:
-                    pass
-        
+            # if direction == "IN":
+            #     try:
+            #         self.run_blink_led_thread()
+            #     except:
+            #         pass
+                        
         else:
             label = "Other"
             add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
@@ -178,11 +178,11 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             self.tms_db.commit()
             self.my_cursor.close()
             self.tms_db.close()
-            if direction == "IN":
-                try:
-                    self.run_blink_led_thread()
-                except:
-                    pass
+            # if direction == "IN":
+            #     try:
+            #         self.run_blink_led_thread()
+            #     except:
+            #         pass
             # To do - de implementat si iesirile din parcare. 
 
             # if direction == "OUT":
