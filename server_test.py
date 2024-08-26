@@ -6,6 +6,7 @@ import mysql.connector
 import requests
 import threading
 import time
+from datetime import datetime
 
 
 class MyRequestHandler(BaseHTTPRequestHandler):
@@ -155,12 +156,12 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             values = (plate_number, cam_date, cam_time, direction, label, token)
             self.my_cursor.execute(add_truck, values)
             self.tms_db.commit()
-            self.my_cursor.execute("SELECT id FROM registru ORDER BY uid DESC LIMIT 1")
+            self.my_cursor.execute("SELECT id FROM registru ORDER BY id DESC LIMIT 1")
             self.last_id = self.my_cursor.fetchone()
 
             data_in_out = str(cam_date) + " " + str(cam_time)
             sql = ("INSERT INTO tauros_truck_park (lpr_id, truck, directie, data_in_out) VALUES (%s, %s, %s, %s)")
-            values = (self.last_idp[0], plate_number, truck_directie, data_in_out)
+            values = (self.last_id[0], plate_number, truck_directie, data_in_out)
             self.my_cursor.execute(sql, values)
             self.tms_db.commit()
             self.my_cursor.close()
@@ -186,61 +187,53 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                         
         else:
             label = "Other"
-            add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
-            values = (plate_number, cam_date, cam_time, direction, label, "CHECK")
-            self.my_cursor.execute(add_truck, values)
-            self.tms_db.commit()
+            # add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
+            # values = (plate_number, cam_date, cam_time, direction, label, "CHECK")
+            # self.my_cursor.execute(add_truck, values)
+            # self.tms_db.commit()
+            if direction == "IN":
+                truck_directie = "PARCAT"
+                token = "OK"
+                add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
+                values = (plate_number, cam_date, cam_time, direction, label, token)
+                self.my_cursor.execute(add_truck, values)
+                self.tms_db.commit()
+                self.my_cursor.execute("SELECT id FROM registru ORDER BY id DESC LIMIT 1")
+                self.last_id = self.my_cursor.fetchone()
+                sql = ("INSERT INTO reg_visit (nr_auto, data_in, ora_in, visit_status, create_date, lpr_id) VALUES (%s, %s, %s, %s, %s, %s)")
+                values = (plate_number, cam_date, cam_time, "PARCAT", datetime.now(), self.last_id[0])
+                self.my_cursor.execute(sql, values)
+                self.tms_db.commit()
+
+            elif direction == "OUT":
+                truck_directie = "IESIT"
+                token = "OK"
+                sql = ("SELECT id FROM registru WHERE cap_tractor = %s ORDER BY id DESC LIMIT 1")
+                values = (plate_number,)
+                self.my_cursor.execute(sql, values)
+                self.last_id = self.my_cursor.fetchone()
+                if self.last_id:
+                    sql = ("UPDATE registru SET token = %s WHERE id = %s")
+                    values = (token, self.last_id[0])
+                    self.my_cursor.execute(sql, values)
+                    self.tms_db.commit()
+                    sql = ("UPDATE reg_visit SET data_out = %s, ora_out = %s, visit_status = %s WHERE lpr_id = %s")
+                    values = (cam_date, cam_time, "IESIT", self.last_id[0])
+                    self.my_cursor.execute(sql, values)
+                    self.tms_db.commit()
+                else:
+                    sql = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
+                    values = (plate_number, cam_date, cam_time, direction, label, "NEAVIZAT")
+                    self.my_cursor.execute(sql, values)
+                    self.tms_db.commit()
+                    sql = ("INSERT INTO reg_visit (nr_auto, data_out, ora_out, visit_status, create_date, lpr_id) VALUES (%s, %s, %s, %s, %s, %s)")
+                    values = (plate_number, cam_date, cam_time, "IESIT", datetime.now(), self.last_id[0])
+                self.my_cursor.execute(sql, values)
+                self.tms_db.commit()
+
             self.my_cursor.close()
             self.tms_db.close()
-            # if direction == "IN":
-            #     try:
-            #         self.run_blink_led_thread()
-            #     except:
-            #         pass
-            # To do - de implementat si iesirile din parcare. 
 
-            # if direction == "OUT":
-            #     try:
-            #         self.tms_db = mysql.connector.connect(
-            #             host = os.getenv("HOST"),
-            #             user = os.getenv("USER"),
-            #             passwd = os.getenv("PASS"),
-            #             database = os.getenv("DB"),
-            #             auth_plugin='mysql_native_password'
-            #         )
-            #     except:
-            #         print("Could not connect to MySQL")
-            #         quit()
-            #     try: 
-            #         self.my_cursor = self.tms_db.cursor()
-            #         self.my_cursor.execute("SELECT id, cap_tractor from registru WHERE cap_tractor = %s AND token = 'PARKED' AND directie = 'IN'", (plate_number,))
-            #         self.result = self.my_cursor.fetchall()
-            #         print(self.result)
-            #         self.out_id = self.result[0]
-            #         self.my_cursor.close()
-            #         self.tms_db.close()
-            #         if self.result:
-            #             try:
-            #                 self.tms_db = mysql.connector.connect(
-            #                     host = os.getenv("HOST"),
-            #                     user = os.getenv("USER"),
-            #                     passwd = os.getenv("PASS"),
-            #                     database = os.getenv("DB"),
-            #                     auth_plugin='mysql_native_password'
-            #                 )
-            #             except:
-            #                 print("Could not connect to MySQL")
-            #                 quit()
-
-            #             self.my_cursor = self.tms_db.cursor()
-            #             sql = "UPDATE reg_visit SET data_out = %s, ora_out = %s, visit_status = 'IESIT' WHERE lpr_id = %s"
-            #             values = (cam_date, cam_time, self.out_id)
-            #             self.my_cursor.execute(sql, values)
-            #             self.tms_db.commit()
-            #             self.my_cursor.close()
-            #             self.tms_db.close()
-            #     except:
-            #         pass
     def trailer(self, plate_number, token):
         pass
 
