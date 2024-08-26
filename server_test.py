@@ -145,9 +145,23 @@ class MyRequestHandler(BaseHTTPRequestHandler):
 
         if self.result:
             label = "Tauros"
+            if direction == "IN":
+                truck_directie = "Intrare"
+                token = "OK"
+            elif direction == "OUT":
+                truck_directie = "Iesire"
+                token = "OK"
             add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
-            values = (plate_number, cam_date, cam_time, direction, label, "CHECK")
+            values = (plate_number, cam_date, cam_time, direction, label, token)
             self.my_cursor.execute(add_truck, values)
+            self.tms_db.commit()
+            self.my_cursor.execute("SELECT id FROM registru ORDER BY uid DESC LIMIT 1")
+            self.last_id = self.my_cursor.fetchone()
+
+            data_in_out = str(cam_date) + " " + str(cam_time)
+            sql = ("INSERT INTO tauros_truck_park (lpr_id, truck, directie, data_in_out) VALUES (%s, %s, %s, %s)")
+            values = (self.last_idp[0], plate_number, truck_directie, data_in_out)
+            self.my_cursor.execute(sql, values)
             self.tms_db.commit()
             self.my_cursor.close()
             self.tms_db.close()
