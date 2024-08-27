@@ -140,7 +140,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
         # Check if Tauros Truck
         self.my_cursor.execute("SELECT plate_no, categorie from tauros_truck WHERE plate_no = %s", (plate_number,))
         self.result = self.my_cursor.fetchall()
-        self.my_cursor.execute("SELECT plate_no from tauros_park_main where plate_no = %s", (plate_number,))
+        self.my_cursor.execute("SELECT place_id, plate_no from tauros_park_main where plate_no = %s", (plate_number,))
         self.result_samsung = self.my_cursor.fetchall()
         
 
@@ -173,17 +173,38 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             #         pass
         elif self.result_samsung:
             label = "Samsung"
-            add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
-            values = (plate_number, cam_date, cam_time, direction, label, "CHECK")
-            self.my_cursor.execute(add_truck, values)
-            self.tms_db.commit()
-            self.my_cursor.close()
-            self.tms_db.close()
-            # if direction == "IN":
-            #     try:
-            #         self.run_blink_led_thread()
-            #     except:
-            #         pass
+            if direction == "IN":
+                truck_directie = "PARCAT"
+                token = "OK"
+                date_in_real = str(cam_date) + " " + str(cam_time)
+                add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
+                values = (plate_number, cam_date, cam_time, direction, label, token)
+                self.my_cursor.execute(add_truck, values)
+                self.tms_db.commit()
+                self.my_cursor.execute("SELECT id FROM registru ORDER BY id DESC LIMIT 1")
+                self.last_id = self.my_cursor.fetchone()
+                samsung_id = self.result_samsung[0][0]
+                # print(samsung_id)
+                sql = ("UPDATE tauros_park_main SET place_status=%s, date_in_real=%s, lpr_id=%s WHERE place_id=%s")
+                values = (truck_directie, date_in_real, self.last_id[0], samsung_id)
+                self.my_cursor.execute(sql, values)
+                self.tms_db.commit()
+                self.my_cursor.close()
+                self.tms_db.close()
+
+            elif direction == "OUT":
+                truck_directie = "PLECAT"
+                token = "OK"
+                date_out_real = str(cam_date) + " " + str(cam_time)
+                samsung_id = self.result_samsung[0][0]
+                self.my_cursor.execute("SELECT id FROM registru ORDER BY id DESC LIMIT 1")
+                self.last_id = self.my_cursor.fetchone()
+                sql = ("UPDATE tauros_park_main SET place_status=%s, date_in_out=%s, lpr_id=%s WHERE place_id=%s")
+                values = (truck_directie, date_out_real, self.last_id[0], samsung_id)
+                self.my_cursor.execute(sql, values)
+                self.tms_db.commit()
+                self.my_cursor.close()
+                self.tms_db.close()
                         
         else:
             label = "Other"
