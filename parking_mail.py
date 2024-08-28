@@ -16,7 +16,7 @@ class Parking_notification():
             sql = "SELECT * from tauros_park_main WHERE place_id = %s"
             cursor.execute(sql, (self.id,))
             self.result = cursor.fetchall()
-            connection._close_connection()
+            connection.close()
 
         except:
             print("Error sending email")
@@ -27,8 +27,8 @@ class Parking_notification():
         self.passwd = "bGrOknm2bm"
         
         if self.direction == "IN":
-            self.message = f"""Camionul {self.result[0][2]} a intrat la parcare.\n
-                            Nume Sofer: {self.result[0][3]} + " " {self.result[0][4]}\n
+            self.message = f"""Camionul {self.result[0][2]} a intrat in parcare.\n
+                            Nume Sofer: {self.result[0][3]}, {self.result[0][4]}\n
                             Companie: {self.result[0][5]}\n
                             Data si ora intrare: {self.result[0][11]}\n
                             Partener Parcare: {self.result[0][14]}
@@ -38,8 +38,9 @@ class Parking_notification():
 
         elif self.direction == "OUT":
             self.message = f"""Camionul {self.result[0][2]} a iesit din parcare.\n
-                            Nume Sofer: {self.result[0][3]} + " " {self.result[0][4]}\n
+                            Nume Sofer: {self.result[0][3]}, {self.result[0][4]}\n
                             Companie: {self.result[0][5]}\n
+                            Data si ora intrare: {self.result[0][11]}\n
                             Data si ora iesire: {self.result[0][12]}\n
                             Partener Parcare: {self.result[0][14]}
                             """
@@ -76,7 +77,7 @@ class Tauros_truck_park():
             sql = "SELECT * from registru WHERE id = %s"
             cursor.execute(sql, (self.id,))
             self.result = cursor.fetchall()
-            connection._close_connection()
+            connection.close()
 
         except:
             print("Error sending email")
@@ -87,7 +88,7 @@ class Tauros_truck_park():
         self.passwd = "bGrOknm2bm"
         
         if self.direction == "IN":
-            self.message = f"Camionul {self.result[0][1]} a intrat la parcare."
+            self.message = f"Camionul {self.result[0][1]} a intrat in parcare."
 
             self.send_email(self.message)
 

@@ -140,7 +140,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
         # Check if Tauros Truck
         self.my_cursor.execute("SELECT plate_no, categorie from tauros_truck WHERE plate_no = %s", (plate_number,))
         self.result = self.my_cursor.fetchall()
-        self.my_cursor.execute("SELECT place_id, plate_no from tauros_park_main where plate_no = %s", (plate_number,))
+        self.my_cursor.execute("SELECT place_id, plate_no from tauros_park_main where plate_no = %s AND place_status <> 'PLECAT'", (plate_number,))
         self.result_samsung = self.my_cursor.fetchall()
         
 
@@ -203,6 +203,15 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 self.last_id = self.my_cursor.fetchone()
                 sql = ("UPDATE tauros_park_main SET place_status=%s, date_in_out=%s, lpr_id=%s WHERE place_id=%s")
                 values = (truck_directie, date_out_real, self.last_id[0], samsung_id)
+                self.my_cursor.execute(sql, values)
+                self.tms_db.commit()
+                date_in_out = "SELECT date_in_real, date_in_out FROM tauros_park_main WHERE place_id = %s"
+                self.my_cursor.execute(date_in_out, (samsung_id,))
+                date_in_real = self.my_cursor.fetchone()
+                parking_time_sec = (date_in_real[1] - date_in_real[0]).total_seconds() / 3600
+                parking_time = round(parking_time_sec, 0)
+                sql = ("UPDATE tauros_park_main SET park_real=%s WHERE place_id=%s")
+                values = (parking_time, samsung_id)
                 self.my_cursor.execute(sql, values)
                 self.tms_db.commit()
                 self.my_cursor.close()
