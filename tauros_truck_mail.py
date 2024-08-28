@@ -53,7 +53,7 @@ class Parking_notification():
 
         server = smtplib.SMTP_SSL('mail.tauros.ro', 465)
         # server.starttls()
-        server.login(self.from_addr, self.passwd)
+        server.login(self.from_addr, self.password)
         server.sendmail(self.from_addr, self.to_addr, msg.as_string())
         server.quit()
 
@@ -65,45 +65,3 @@ class Parking_notification():
 # password = "your-email-password"
 
 # send_email(subject, message, from_addr, to_addr, password)
-
-class Tauros_truck_park():
-    def __init__(self, id, direction):
-        self.id = id
-        self.direction = direction
-
-        try:
-            connection._open_connection()
-            sql = "SELECT * from registru WHERE id = %s"
-            cursor.execute(sql, (self.id,))
-            self.result = cursor.fetchall()
-            connection._close_connection()
-
-        except:
-            print("Error sending email")
-
-        self.subject = f"Tauros Parking Notification - {self.result[0][1]}"
-        self.from_addr = "tauros_tasks@tauros.ro"
-        self.to_addr = "andrei@tauros.ro"
-        self.passwd = "bGrOknm2bm"
-        
-        if self.direction == "IN":
-            self.message = f"Camionul {self.result[0][1]} a intrat la parcare."
-
-            self.send_email(self.message)
-
-        elif self.direction == "OUT":
-            self.message = f"Camionul {self.result[0][1]} a iesit din parcare."
-            
-            self.send_email(self.message)
-
-    def send_email(self, message):
-        msg = MIMEText(message)
-        msg['Subject'] = self.subject
-        msg['From'] = self.from_addr
-        msg['To'] = self.to_addr
-
-        server = smtplib.SMTP_SSL('mail.tauros.ro', 465)
-        # server.starttls()
-        server.login(self.from_addr, self.passwd)
-        server.sendmail(self.from_addr, self.to_addr, msg.as_string())
-        server.quit()

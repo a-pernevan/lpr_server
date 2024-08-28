@@ -7,7 +7,7 @@ import requests
 import threading
 import time
 from datetime import datetime
-
+from parking_mail import Parking_notification, Tauros_truck_park
 
 class MyRequestHandler(BaseHTTPRequestHandler):
     load_dotenv()
@@ -166,6 +166,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             self.tms_db.commit()
             self.my_cursor.close()
             self.tms_db.close()
+            tauros_mail_notify = Tauros_truck_park(self.last_id[0], direction)
             # if direction == "IN":
             #     try:
             #         self.run_turn_led_off_thread()
@@ -191,6 +192,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 self.tms_db.commit()
                 self.my_cursor.close()
                 self.tms_db.close()
+                mail_msg = Parking_notification(samsung_id, direction)
 
             elif direction == "OUT":
                 truck_directie = "PLECAT"
@@ -205,7 +207,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 self.tms_db.commit()
                 self.my_cursor.close()
                 self.tms_db.close()
-                        
+                mail_msg = Parking_notification(samsung_id, direction)
         else:
             label = "Other"
             # add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
