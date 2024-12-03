@@ -152,7 +152,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             elif direction == "OUT":
                 truck_directie = "Iesire"
                 token = "OK"
-            add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
+            add_truck = ("INSERT IGNORE INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
             values = (plate_number, cam_date, cam_time, direction, label, token)
             self.my_cursor.execute(add_truck, values)
             self.tms_db.commit()
@@ -160,7 +160,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             self.last_id = self.my_cursor.fetchone()
 
             data_in_out = str(cam_date) + " " + str(cam_time)
-            sql = ("INSERT INTO tauros_truck_park (lpr_id, truck, directie, data_in_out) VALUES (%s, %s, %s, %s)")
+            sql = ("INSERT IGNORE INTO tauros_truck_park (lpr_id, truck, directie, data_in_out) VALUES (%s, %s, %s, %s)")
             values = (self.last_id[0], plate_number, truck_directie, data_in_out)
             self.my_cursor.execute(sql, values)
             self.tms_db.commit()
@@ -178,7 +178,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 truck_directie = "PARCAT"
                 token = "OK"
                 date_in_real = str(cam_date) + " " + str(cam_time)
-                add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
+                add_truck = ("INSERT IGNORE INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
                 values = (plate_number, cam_date, cam_time, direction, label, token)
                 self.my_cursor.execute(add_truck, values)
                 self.tms_db.commit()
@@ -226,13 +226,13 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             if direction == "IN":
                 truck_directie = "PARCAT"
                 token = "OK"
-                add_truck = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
+                add_truck = ("INSERT IGNORE INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
                 values = (plate_number, cam_date, cam_time, direction, label, token)
                 self.my_cursor.execute(add_truck, values)
                 self.tms_db.commit()
                 self.my_cursor.execute("SELECT id FROM registru ORDER BY id DESC LIMIT 1")
                 self.last_id = self.my_cursor.fetchone()
-                sql = ("INSERT INTO reg_visit (nr_auto, data_in, ora_in, visit_status, create_date, lpr_id) VALUES (%s, %s, %s, %s, %s, %s)")
+                sql = ("INSERT IGNORE INTO reg_visit (nr_auto, data_in, ora_in, visit_status, create_date, lpr_id) VALUES (%s, %s, %s, %s, %s, %s)")
                 values = (plate_number, cam_date, cam_time, "PARCAT", datetime.now(), self.last_id[0])
                 self.my_cursor.execute(sql, values)
                 self.tms_db.commit()
@@ -254,11 +254,11 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                     self.my_cursor.execute(sql, values)
                     self.tms_db.commit()
                 else:
-                    sql = ("INSERT INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
+                    sql = ("INSERT IGNORE INTO registru (cap_tractor, data_reg, time_reg, directie, label, token) VALUES (%s, %s, %s, %s, %s, %s)")
                     values = (plate_number, cam_date, cam_time, direction, label, "NEAVIZAT")
                     self.my_cursor.execute(sql, values)
                     self.tms_db.commit()
-                    sql = ("INSERT INTO reg_visit (nr_auto, data_out, ora_out, visit_status, create_date, lpr_id) VALUES (%s, %s, %s, %s, %s, %s)")
+                    sql = ("INSERT IGNORE INTO reg_visit (nr_auto, data_out, ora_out, visit_status, create_date, lpr_id) VALUES (%s, %s, %s, %s, %s, %s)")
                     values = (plate_number, cam_date, cam_time, "IESIT", datetime.now(), self.last_id[0])
                 self.my_cursor.execute(sql, values)
                 self.tms_db.commit()
